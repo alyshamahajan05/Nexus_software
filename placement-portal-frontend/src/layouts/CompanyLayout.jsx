@@ -1,11 +1,8 @@
 // src/layouts/CompanyLayout.jsx
 import React from 'react';
-import { Box, CssBaseline, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, Divider, Avatar, IconButton } from '@mui/material';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import { useTheme } from '@mui/material/styles';
-import { useColorMode } from '../theme/index.jsx';
-import { Outlet, Link } from 'react-router-dom';
+import { Box, CssBaseline, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, Divider, Avatar, Button } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -17,9 +14,17 @@ const navItems = [
 ];
 
 function CompanyLayout() {
-  const theme = useTheme();
-  const { toggleColorMode } = useColorMode();
-  const isDark = theme.palette.mode === 'dark';
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    try {
+      localStorage.clear();
+    } catch (_) {
+      // ignore storage errors
+    }
+    navigate('/login', { replace: true });
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -36,11 +41,11 @@ function CompanyLayout() {
             Placement Portal
           </Typography>
           <Box display="flex" alignItems="center" gap={2}>
-            <IconButton onClick={toggleColorMode} color="inherit" aria-label="Toggle theme">
-              {isDark ? <LightModeIcon /> : <DarkModeIcon />}
-            </IconButton>
             <Typography variant="body2" color="text.secondary">Recruiter</Typography>
             <Avatar sx={{ width: 32, height: 32 }}>R</Avatar>
+            <Button variant="outlined" size="small" startIcon={<LogoutIcon />} onClick={handleLogout}>
+              Logout
+            </Button>
           </Box>
         </Toolbar>
       </AppBar>
