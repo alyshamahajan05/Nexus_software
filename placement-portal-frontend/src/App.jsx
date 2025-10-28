@@ -6,6 +6,12 @@ import CompanyDashboard from './pages/CompanyDashboard';
 import JobManagement from './pages/JobManagement';
 import CandidateScreening from './pages/CandidateScreening';
 import JobPostForm from './pages/JobPostForm';
+import StudentLayout from './layouts/StudentLayout';
+import StudentDashboard from './pages/StudentDashboard';
+import ATSScanner from './pages/ATSScanner';
+import JobRecommendations from './pages/JobRecommendations';
+import StudentApplications from './pages/StudentApplications';
+import StudentProfile from './pages/StudentProfile';
 
 function App() {
   return (
@@ -19,7 +25,13 @@ function App() {
           <Route path="jobs/new" element={<JobPostForm />} />
           <Route path="candidates" element={<CandidateScreening />} />
         </Route>
-        <Route path="/student" element={<div>Student Dashboard - Coming Soon!</div>} />
+        <Route path="/student" element={<StudentLayout />}>
+          <Route index element={<StudentDashboard />} />
+          <Route path="ats-scanner" element={<ATSScanner />} />
+          <Route path="jobs" element={<JobRecommendations />} />
+          <Route path="applications" element={<StudentApplications />} />
+          <Route path="profile" element={<StudentProfile />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
