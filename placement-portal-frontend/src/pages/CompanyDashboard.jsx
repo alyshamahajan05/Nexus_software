@@ -1,74 +1,70 @@
-import React from 'react';
-import { Grid, Paper, Typography, Box, Button } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Grid, Paper, Typography, Box, Button, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import AddIcon from '@mui/icons-material/Add';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
-
-// --- Imports for Stat Widgets ---
-import StatWidget from '../components/statwidget'; 
 import WorkIcon from '@mui/icons-material/Work';
 import GroupIcon from '@mui/icons-material/Group';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-// --- Imports for Applications Table ---
-import ApplicationsTable from '../components/ApplicationsTable'; 
-// --- Imports for Pipeline Chart ---
-import PipelineChart from '../components/PipelineChart';
-// --- Imports for Routing (optional, but good for Quick Actions) ---
 import { Link } from 'react-router-dom';
 
+// Components
+import StatWidget from '../components/statwidget';
+import PipelineChart from '../components/PipelineChart';
+import ApplicationsTable from '../components/ApplicationsTable';
 
-// Mock Data for the Dashboard (Updated with icons and trend type)
-const mockStats = [
-  { 
-    title: 'Active Jobs', 
-    value: 12, 
-    trend: '+3 since last month', 
-    IconComponent: WorkIcon, 
-    trendType: 'up' 
-  },
-  { 
-    title: 'Total Applicants', 
-    value: 452, 
-    trend: 'View Pipeline', 
-    IconComponent: GroupIcon, 
-    trendType: 'neutral' 
-  },
-  { 
-    title: 'ATS Qualified Rate', 
-    value: '75%', 
-    trend: 'Above avg.', 
-    IconComponent: BarChartIcon, 
-    trendType: 'up' 
-  },
-  { 
-    title: 'Interviews Scheduled', 
-    value: 7, 
-    trend: 'Next 7 days', 
-    IconComponent: AccessTimeIcon, 
-    trendType: 'down' 
-  },
-];
-
-const mockRecentApps = [
-  { name: 'Alice Johnson', job: 'Software Engineer', score: 85, date: 'Oct 20' },
-  { name: 'Bob Smith', job: 'Data Analyst', score: 62, date: 'Oct 19' },
-  { name: 'Charlie Brown', job: 'Product Manager', score: 91, date: 'Oct 19' },
-];
-
+// API imports (connects to your FastAPI backend)
+import { fetchCompanyStats, fetchRecentApplications } from '../api/company';
 
 function CompanyDashboard() {
+  const [stats, setStats] = useState([]);
+  const [recentApps, setRecentApps] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load dashboard data from backend
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [statsData, appsData] = await Promise.all([
+        fetchCompanyStats(),
+        fetchRecentApplications(),
+      ]);
+      setStats(statsData);
+      setRecentApps(appsData);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress size={40} />
+      </Box>
+    );
+  }
+
   return (
     <Box>
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <Typography 
-          variant="h4" 
+        <Typography
+          variant="h4"
           gutterBottom
           sx={{
             background: 'linear-gradient(135deg, #5B6CFF 0%, #7C4DFF 100%)',
@@ -76,49 +72,61 @@ function CompanyDashboard() {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             fontWeight: 800,
-            mb: 1
+            mb: 1,
           }}
         >
           Welcome Back, Recruiter! 🎯
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Here's what's happening with your recruitment pipeline today
+          Here’s what’s happening with your recruitment pipeline today.
         </Typography>
       </motion.div>
 
-      {/* 1. Stat Widgets Row */}
+      {/* Stat Widgets */}
       <Grid container spacing={3} mb={4}>
-        {/* Render StatWidget for each item in mockStats */}
-        {mockStats.map((stat, index) => (
+        {(stats.length ? stats : [
+          { title: 'Active Jobs', value: 0, trend: 'No data' },
+          { title: 'Total Applicants', value: 0, trend: 'No data' },
+          { title: 'ATS Qualified Rate', value: '0%', trend: 'No data' },
+          { title: 'Interviews Scheduled', value: 0, trend: 'No data' },
+        ]).map((stat, index) => {
+          // Map icons to each stat based on index
+          const icons = [WorkIcon, GroupIcon, BarChartIcon, AccessTimeIcon];
+          return (
           <Grid item xs={12} sm={6} lg={3} key={index}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <StatWidget {...stat} /> 
+                <StatWidget {...stat} IconComponent={icons[index]} />
             </motion.div>
           </Grid>
-        ))}
+          );
+        })}
       </Grid>
 
-      {/* 2. Main Content Row (Pipeline Chart and Quick Actions) */}
+      {/* Pipeline Chart + Quick Actions */}
       <Grid container spacing={3}>
-        {/* Candidate Pipeline Chart (Placeholder) */}
+        {/* Candidate Pipeline */}
         <Grid item xs={12} lg={8}>
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" mb={2} sx={{ fontWeight: 700 }}>Candidate Pipeline</Typography>
-              <PipelineChart />
+            <Paper sx={{ p: 3, height: '100%', minHeight: 400 }}>
+              <Typography variant="h6" mb={2} sx={{ fontWeight: 700 }}>
+                Candidate Pipeline
+              </Typography>
+              <Box sx={{ width: '100%', minWidth: 0 }}>
+                <PipelineChart />
+              </Box>
             </Paper>
           </motion.div>
         </Grid>
 
-        {/* Quick Actions Card */}
+        {/* Quick Actions */}
         <Grid item xs={12} lg={4}>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -126,62 +134,55 @@ function CompanyDashboard() {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <Paper sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" mb={2} sx={{ fontWeight: 700 }}>Quick Actions</Typography>
+              <Typography variant="h6" mb={2} sx={{ fontWeight: 700 }}>
+                Quick Actions
+              </Typography>
               <Box display="flex" flexDirection="column" gap={1.5}>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button 
-                    variant="contained" 
-                    fullWidth 
-                    sx={{ 
-                      mb: 1,
-                      background: 'linear-gradient(135deg, #5B6CFF 0%, #7C4DFF 100%)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #4A5BFF 0%, #6B3DFF 100%)',
-                      }
-                    }}
-                    component={Link}
-                    to="/company/jobs/new"
-                    onClick={() => toast.success('Navigating to job posting form!')}
-                  >
-                    <AddIcon sx={{ mr: 1 }} /> Post New Job
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button 
-                    variant="outlined" 
-                    fullWidth 
-                    sx={{ mb: 1 }}
-                    component={Link}
-                    to="/company/candidates"
-                    onClick={() => toast.success('Opening candidate screening!')}
-                  >
-                    <PeopleIcon sx={{ mr: 1 }} /> Review Top Candidates
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button 
-                    variant="outlined" 
-                    fullWidth
-                    component={Link}
-                    to="/company/settings"
-                    onClick={() => toast.success('Opening company settings!')}
-                  >
-                    <SettingsIcon sx={{ mr: 1 }} /> Update Company Profile
-                  </Button>
-                </motion.div>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    background: 'linear-gradient(135deg, #5B6CFF 0%, #7C4DFF 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #4A5BFF 0%, #6B3DFF 100%)',
+                    },
+                  }}
+                  component={Link}
+                  to="/company/jobs/new"
+                >
+                  <AddIcon sx={{ mr: 1 }} /> Post New Job
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  component={Link}
+                  to="/company/candidates"
+                >
+                  <PeopleIcon sx={{ mr: 1 }} /> Review Top Candidates
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  component={Link}
+                  to="/company/profile"
+                >
+                  <SettingsIcon sx={{ mr: 1 }} /> Update Company Profile
+                </Button>
               </Box>
             </Paper>
           </motion.div>
         </Grid>
 
-        {/* 3. Recent Applications Table */}
+        {/* Recent Applications */}
         <Grid item xs={12}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <ApplicationsTable data={mockRecentApps} />
+            <ApplicationsTable data={recentApps} />
           </motion.div>
         </Grid>
       </Grid>

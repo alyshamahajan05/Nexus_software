@@ -12,6 +12,9 @@ import ATSScanner from './pages/ATSScanner';
 import JobRecommendations from './pages/JobRecommendations';
 import StudentApplications from './pages/StudentApplications';
 import StudentProfile from './pages/StudentProfile';
+import Register from './pages/Register';
+import JobDetails from './pages/JobDetails';
+import CompanyProfile from './pages/CompanyProfile';
 
 function App() {
   return (
@@ -19,11 +22,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/company" element={<CompanyLayout />}>
           <Route index element={<CompanyDashboard />} />
           <Route path="jobs" element={<JobManagement />} />
           <Route path="jobs/new" element={<JobPostForm />} />
+          <Route path="jobs/:id" element={<JobDetails />} />
           <Route path="candidates" element={<CandidateScreening />} />
+          <Route path="profile" element={<CompanyProfile />} />
         </Route>
         <Route path="/student" element={<StudentLayout />}>
           <Route index element={<StudentDashboard />} />

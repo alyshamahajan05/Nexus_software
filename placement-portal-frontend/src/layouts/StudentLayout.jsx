@@ -1,6 +1,20 @@
 // src/layouts/StudentLayout.jsx
-import React from 'react';
-import { Box, CssBaseline, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, Divider, Avatar, Button } from '@mui/material';
+import React, { useEffect } from 'react';
+import {
+  Box,
+  CssBaseline,
+  AppBar,
+  Toolbar,
+  Typography,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Divider,
+  Avatar,
+  Button,
+} from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 
@@ -16,6 +30,14 @@ const navItems = [
 
 function StudentLayout() {
   const navigate = useNavigate();
+
+  // ✅ Redirect if not logged in
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
     try {
