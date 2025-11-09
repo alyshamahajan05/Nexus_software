@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Form
 from models.student_model import student_collection
-from schemas.student_schema import StudentRegister, StudentLogin
+from schemas.student_schema import StudentRegister
 from utils.auth import hash_password, verify_password, create_access_token
 
 router = APIRouter(prefix="/student", tags=["Student Authentication"])
@@ -34,13 +34,14 @@ async def register_student(student: StudentRegister):
 
 # --- POST: Login student ---
 @router.post("/login")
-async def login_student(student: StudentLogin):
+async def login_student(username: str = Form(...), 
+    password: str = Form(...)):
     """Authenticate a student and return a JWT access token."""
-    existing = await student_collection.find_one({"email": student.email})
+    existing = await student_collection.find_one({"email": username})
     if not existing:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
 
-    if not verify_password(student.password, existing["password"]):
+    if not verify_password(password, existing["password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
     # Generate JWT token with student role

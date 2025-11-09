@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Form
 from models.company_model import company_collection
-from schemas.company_schema import CompanyRegister, CompanyLogin
+from schemas.company_schema import CompanyRegister
 from utils.auth import hash_password, verify_password, create_access_token
 from utils.dependencies import get_current_company
 
@@ -42,10 +42,11 @@ async def register_company(company: CompanyRegister):
 
 # --- LOGIN: Company ---
 @router.post("/login")
-async def login_company(company: CompanyLogin):
+async def login_company(username: str = Form(...),
+                        password: str = Form(...)):
     """Authenticate company and return JWT token."""
     # Find company by email
-    existing = await company_collection.find_one({"email": company.email})
+    existing = await company_collection.find_one({"email": username})
     if not existing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -53,7 +54,7 @@ async def login_company(company: CompanyLogin):
         )
 
     # Verify password
-    if not verify_password(company.password, existing["password"]):
+    if not verify_password(password, existing["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password."

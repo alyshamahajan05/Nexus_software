@@ -42,8 +42,7 @@ _load_dotenv_if_present()
 # ==============================
 # 🔐 SECURITY & AUTHENTICATION
 # ==============================
-COMPANY_SECRET_KEY = os.getenv("COMPANY_SECRET_KEY", "supersecretcompanykey")  # ⚠️ Change in production
-STUDENT_SECRET_KEY = os.getenv("STUDENT_SECRET_KEY", "supersecretstudentkey")  # ⚠️ Change in production
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")  # ⚠️ Change in production
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_HOURS = int(os.getenv("ACCESS_TOKEN_EXPIRE_HOURS", "24"))
 
@@ -51,7 +50,7 @@ ACCESS_TOKEN_EXPIRE_HOURS = int(os.getenv("ACCESS_TOKEN_EXPIRE_HOURS", "24"))
 # ==============================
 # 🗄️ DATABASE CONFIGURATION
 # ==============================
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://alysha:K5KrKmqmiCmkxdvb@cluster0.wx6tpor.mongodb.net/?appName=Cluster0")
+MONGO_URI = os.getenv("MONGO_URI")
 DB_NAME = os.getenv("DB_NAME", "placement_portal")
 
 

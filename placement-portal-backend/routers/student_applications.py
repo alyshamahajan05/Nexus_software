@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from models.application_model import application_collection
 from models.job_model import job_collection 
 from utils.dependencies import get_current_student
-from datetime import datetime
+from datetime import datetime, timezone
 from routers.student_jobs import serialize_doc 
 from bson import ObjectId
 
@@ -42,7 +42,7 @@ async def apply_for_job(job_id: str, current_student: dict = Depends(get_current
     application_data = {
         "job_id": ObjectId(job_id),
         "student_email": student_email,
-        "applied_at": datetime.now(datetime.timezone.utc),
+        "applied_at": datetime.now(timezone.utc),
         "status": "Applied"
     }
     result = await application_collection.insert_one(application_data)

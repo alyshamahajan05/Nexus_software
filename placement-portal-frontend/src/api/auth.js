@@ -8,8 +8,16 @@ export const registerCompany = async ({ name, email, password }) => {
 };
 
 export const loginCompany = async ({ email, password }) => {
-  const res = await axios.post(`${API_BASE_URL}/company/login`, { email, password });
-  return res.data; // { access_token, token_type }
+    // 1. Create FormData using URLSearchParams (the standard browser API)
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+
+    // 2. Send as form data with the correct content-type
+    const res = await axios.post(`${API_BASE_URL}/company/login`, formData, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+    return res.data;
 };
 
 export const registerStudent = async ({ name, email, password }) => {
@@ -18,8 +26,16 @@ export const registerStudent = async ({ name, email, password }) => {
 };
 
 export const loginStudent = async ({ email, password }) => {
-  const res = await axios.post(`${API_BASE_URL}/student/login`, { email, password });
-  return res.data;
+    // 1. Create FormData
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+
+    // 2. Send as form data
+    const res = await axios.post(`${API_BASE_URL}/student/login`, formData, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+    return res.data;
 };
 
 
