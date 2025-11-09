@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from routers import (
     company_auth,
@@ -6,6 +6,9 @@ from routers import (
     company_applications,
     company_profile,
     student_auth,
+    student_profile,
+    student_jobs,
+    student_applications
 )
 from config.config import ALLOW_ORIGINS  
 
@@ -30,6 +33,9 @@ app.include_router(company_jobs.router, tags=["Company Jobs"])
 app.include_router(company_applications.router, tags=["Company Applications"])
 app.include_router(company_profile.router, tags=["Company Profile"])
 app.include_router(student_auth.router, tags=["Student Auth"])
+app.include_router(student_profile.router, tags=["Student Profile"])
+app.include_router(student_jobs.router, tags=["Student Jobs"])
+app.include_router(student_applications.router, tags=["Student Applications"])
 
 # Root route
 @app.get("/")

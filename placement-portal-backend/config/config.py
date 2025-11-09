@@ -42,7 +42,8 @@ _load_dotenv_if_present()
 # ==============================
 # 🔐 SECURITY & AUTHENTICATION
 # ==============================
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecretcompanykey")  # ⚠️ Change in production
+COMPANY_SECRET_KEY = os.getenv("COMPANY_SECRET_KEY", "supersecretcompanykey")  # ⚠️ Change in production
+STUDENT_SECRET_KEY = os.getenv("STUDENT_SECRET_KEY", "supersecretstudentkey")  # ⚠️ Change in production
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_HOURS = int(os.getenv("ACCESS_TOKEN_EXPIRE_HOURS", "24"))
 

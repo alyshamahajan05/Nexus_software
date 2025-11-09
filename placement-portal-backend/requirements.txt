@@ -1,29 +1,11 @@
-# -----------------------------
-# FastAPI backend dependencies
-# -----------------------------
-
-# Web framework & ASGI server
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
-
-# Database driver (MongoDB async)
 motor>=3.5.0
-
-# Data validation / serialization
-pydantic[email,dotenv,timezone,orjson]>=2.8.0
-
-# Security & authentication
+pydantic>=2.8.0
 python-jose[cryptography]>=3.3.0
-passlib[bcrypt,argon2]>=1.7.4
-bcrypt>=4.0.1
-argon2-cffi>=23.1.0
-
-# HTTP client (for external APIs)
+passlib[bcrypt]>=1.7.4
 httpx>=0.27.0
-
-# -----------------------------
-# Developer utilities (optional)
-# -----------------------------
-# python-dotenv>=1.0.1   # if you load .env manually
-# orjson>=3.10.0          # super-fast JSON (used by FastAPI if installed)
-# email-validator>=2.2.0  # installed via pydantic[email]
+fastapi[standard]>=0.115.0
+python-dotenv>=1.0.1
+orjson>=3.10.0
+email-validator>=2.2.0
