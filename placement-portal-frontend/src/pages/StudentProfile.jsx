@@ -1,26 +1,114 @@
-// src/pages/StudentProfile.jsx
-import React from 'react';
-import { 
-  Paper, 
-  Typography, 
+//
+// FILE: placement-portal-frontend/src/pages/StudentProfile.jsx
+//
+import React, { useState, useEffect } from 'react';
+import {
+  Paper,
+  Typography,
   Box,
   Grid,
   TextField,
   Button,
   Avatar,
   Chip,
-  Divider
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import toast from 'react-hot-toast';
+import { fetchStudentProfile, updateStudentProfile } from '../api/student'; // <-- 1. IMPORT
 
 function StudentProfile() {
-  const handleSave = () => {
-    toast.success('Profile updated successfully!');
+  // 2. ADD STATE for loading and profile data
+  const [profile, setProfile] = useState(null); // Use null to show empty fields
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [skillInput, setSkillInput] = useState(""); // State for the skill input box
+
+  // 3. ADD USEEFFECT to fetch data on page load
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await fetchStudentProfile();
+        // Initialize skills array if it's null/undefined from DB
+        if (!data.skills) {
+          data.skills = [];
+        }
+        setProfile(data); // Store the fetched profile in state
+      } catch (err) {
+        toast.error("Failed to load profile. Please log in again.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, []); // The empty [] means "run this only once"
+
+  // 4. ADD handleChange to update state when typing
+  const handleChange = (e) => {
+    setProfile(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
+  // 5. ADD functions to handle skills
+  const handleAddSkill = (e) => {
+    // Only run on 'Enter' key
+    if (e.key === 'Enter') {
+      const newSkill = skillInput.trim();
+      if (newSkill && !profile.skills.includes(newSkill)) {
+        // Add the new skill to the profile state
+        setProfile(prev => ({
+          ...prev,
+          skills: [...prev.skills, newSkill]
+        }));
+        setSkillInput(""); // Clear the input box
+      }
+      e.preventDefault();
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove) => {
+    setProfile(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
+  };
+
+  // 6. UPDATE handleSave to call the API
+  const handleSave = async () => {
+    if (!profile) return;
+    setSaving(true);
+    try {
+      // updateStudentProfile now sends the *entire* profile object,
+      // and our new backend schema will accept it.
+      await updateStudentProfile(profile);
+      toast.success('Profile updated successfully!');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 7. ADD LOADING STATE
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+  
+  // This prevents errors if the API failed
+  if (!profile) {
+     return <Typography>Could not load profile.</Typography>;
+  }
+
+  // 8. UPDATE JSX to use 'profile' state
   return (
     <Box>
       <motion.div
@@ -28,8 +116,8 @@ function StudentProfile() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <Typography 
-          variant="h4" 
+        <Typography
+          variant="h4"
           gutterBottom
           sx={{
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -52,29 +140,28 @@ function StudentProfile() {
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
             <Box display="flex" alignItems="center" gap={3}>
-              <Avatar 
-                sx={{ 
-                  width: 100, 
+              <Avatar
+                sx={{
+                  width: 100,
                   height: 100,
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   fontSize: '2rem'
                 }}
               >
-                S
+                {profile.name ? profile.name[0].toUpperCase() : 'S'}
               </Avatar>
               <Box flex={1}>
                 <Typography variant="h5" fontWeight={700} mb={1}>
-                  Student Name
+                  {profile.name || 'Student Name'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mb={1}>
-                  Computer Science Engineering
+                  {profile.department || 'Your Department'}
                 </Typography>
-                <Chip label="Final Year" color="primary" size="small" />
+                <Chip label={profile.year || 'Your Year'} color="primary" size="small" />
               </Box>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 startIcon={<EditIcon />}
-                onClick={() => toast.success('Edit mode enabled')}
               >
                 Edit Profile
               </Button>
@@ -88,13 +175,52 @@ function StudentProfile() {
             <Typography variant="h6" fontWeight={700} mb={3}>
               Personal Information
             </Typography>
-            <Box display="flex" flexDirection="column" gap={2}>
-              <TextField label="Full Name" defaultValue="Student Name" fullWidth />
-              <TextField label="Email" defaultValue="student@example.com" fullWidth type="email" />
-              <TextField label="Phone" defaultValue="+91 9876543210" fullWidth />
-              <TextField label="College" defaultValue="ABC University" fullWidth />
-              <TextField label="Department" defaultValue="Computer Science" fullWidth />
-              <TextField label="Year of Study" defaultValue="4th Year" fullWidth />
+            <Box component="form" display="flex" flexDirection="column" gap={2}>
+              <TextField
+                label="Full Name"
+                name="name"
+                value={profile.name || ''}
+                onChange={handleChange}
+                fullWidth
+              />
+              <TextField
+                label="Email"
+                name="email"
+                value={profile.email || ''}
+                onChange={handleChange}
+                fullWidth
+                disabled
+              />
+              <TextField
+                label="Phone"
+                name="phone"
+                value={profile.phone || ''}
+                onChange={handleChange}
+                placeholder="+91 9876543210"
+                fullWidth
+              />
+              <TextField
+                label="College"
+                name="college"
+                value={profile.college || ''}
+                onChange={handleChange}
+                placeholder="ABC University"
+                fullWidth
+              />
+              <TextField
+                label="Department"
+                name="department"
+                value={profile.department || ''}
+                onChange={handleChange}
+                fullWidth
+              />
+              <TextField
+                label="Year of Study"
+                name="year"
+                value={profile.year || ''}
+                onChange={handleChange}
+                fullWidth
+              />
             </Box>
           </Paper>
         </Grid>
@@ -105,66 +231,96 @@ function StudentProfile() {
             <Typography variant="h6" fontWeight={700} mb={3}>
               Academic Information
             </Typography>
-            <Box display="flex" flexDirection="column" gap={2}>
-              <TextField label="CGPA/Percentage" defaultValue="8.5" fullWidth />
-              <TextField label="10th Percentage" defaultValue="92%" fullWidth />
-              <TextField label="12th Percentage" defaultValue="88%" fullWidth />
-              <TextField label="Graduation Year" defaultValue="2025" fullWidth />
-              <TextField 
-                label="LinkedIn Profile" 
-                defaultValue="linkedin.com/in/student" 
-                fullWidth 
+            <Box component="form" display="flex" flexDirection="column" gap={2}>
+              <TextField
+                label="CGPA/Percentage"
+                name="cgpa"
+                value={profile.cgpa || ''}
+                onChange={handleChange}
+                fullWidth
               />
-              <TextField 
-                label="GitHub Profile" 
-                defaultValue="github.com/student" 
-                fullWidth 
+              <TextField
+                label="10th Percentage"
+                name="tenth_percentage"
+                value={profile.tenth_percentage || ''}
+                onChange={handleChange}
+                fullWidth
+              />
+              <TextField
+                label="12th Percentage"
+                name="twelfth_percentage"
+                value={profile.twelfth_percentage || ''}
+                onChange={handleChange}
+                fullWidth
+              />
+              <TextField
+                label="Graduation Year"
+                name="graduation_year"
+                value={profile.graduation_year || ''}
+                onChange={handleChange}
+                fullWidth
+              />
+              <TextField
+                label="LinkedIn Profile"
+                name="linkedin_profile"
+                value={profile.linkedin_profile || ''}
+                onChange={handleChange}
+                placeholder="linkedin.com/in/student"
+                fullWidth
+              />
+              <TextField
+                label="GitHub Profile"
+                name="github_profile"
+                value={profile.github_profile || ''}
+                onChange={handleChange}
+                placeholder="github.com/student"
+                fullWidth
               />
             </Box>
           </Paper>
         </Grid>
 
-        {/* Skills */}
+        {/* Skills (NOW DYNAMIC) */}
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" fontWeight={700} mb={2}>
               Skills
             </Typography>
             <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-              {['React', 'Node.js', 'JavaScript', 'Python', 'MongoDB', 'SQL', 'Git', 'AWS'].map((skill) => (
-                <Chip 
-                  key={skill} 
-                  label={skill} 
+              {(profile.skills || []).map((skill) => (
+                <Chip
+                  key={skill}
+                  label={skill}
                   color="primary"
-                  onDelete={() => toast.success(`${skill} removed`)}
+                  onDelete={() => handleRemoveSkill(skill)}
                 />
               ))}
             </Box>
-            <TextField 
-              placeholder="Add new skill" 
-              size="small" 
+            <TextField
+              placeholder="Add new skill and press Enter"
+              size="small"
               fullWidth
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  toast.success('Skill added!');
-                  e.target.value = '';
-                }
-              }}
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyPress={handleAddSkill}
             />
           </Paper>
         </Grid>
 
-        {/* About Me */}
+        {/* About Me (NOW DYNAMIC) */}
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" fontWeight={700} mb={2}>
               About Me
             </Typography>
             <TextField
+              label="Tell us about yourself (not saved yet)"
+              name="about_me"
               multiline
               rows={4}
               fullWidth
-              defaultValue="I am a passionate software developer with a keen interest in web technologies and problem-solving. I love learning new technologies and building innovative solutions."
+              value={profile.about_me || ''}
+              onChange={handleChange}
             />
           </Paper>
         </Grid>
@@ -172,13 +328,14 @@ function StudentProfile() {
         {/* Save Button */}
         <Grid item xs={12}>
           <Box display="flex" justifyContent="flex-end" gap={2}>
-            <Button variant="outlined" onClick={() => toast.success('Changes discarded')}>
+            <Button variant="outlined">
               Cancel
             </Button>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               startIcon={<SaveIcon />}
-              onClick={handleSave}
+              onClick={handleSave} // This now saves *everything*
+              disabled={saving}
               sx={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 '&:hover': {
@@ -186,7 +343,7 @@ function StudentProfile() {
                 }
               }}
             >
-              Save Changes
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </Box>
         </Grid>
@@ -196,6 +353,3 @@ function StudentProfile() {
 }
 
 export default StudentProfile;
-
-
-

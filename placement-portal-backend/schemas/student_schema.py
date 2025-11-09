@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 
 class StudentRegister(BaseModel):
 	name: str
@@ -16,5 +16,14 @@ class StudentProfile(BaseModel):
 	department: Optional[str] = None
 	year: Optional[str] = None
 	cgpa: Optional[str] = None
+	phone: Optional[str] = None
+	college: Optional[str] = None
+	tenth_percentage: Optional[str] = None
+	twelfth_percentage: Optional[str] = None
+	graduation_year: Optional[str] = None
+	linkedin_profile: Optional[str] = None
+	github_profile: Optional[str] = None
+	skills: Optional[List[str]] = [] # We will save skills as a list of strings
+	about_me: Optional[str] = None
 
 

@@ -1,5 +1,7 @@
-// src/layouts/StudentLayout.jsx
-import React, { useEffect } from 'react';
+//
+// FILE: placement-portal-frontend/src/layouts/StudentLayout.jsx
+//
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   CssBaseline,
@@ -17,6 +19,7 @@ import {
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { fetchStudentProfile } from '../api/student'; // <-- 1. IMPORT
 
 const drawerWidth = 240;
 
@@ -30,14 +33,8 @@ const navItems = [
 
 function StudentLayout() {
   const navigate = useNavigate();
-
-  // ✅ Redirect if not logged in
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      navigate('/login', { replace: true });
-    }
-  }, [navigate]);
+  // 2. ADD STATE to store the user's profile
+  const [profile, setProfile] = useState(null);
 
   const handleLogout = () => {
     try {
@@ -47,6 +44,29 @@ function StudentLayout() {
     }
     navigate('/login', { replace: true });
   };
+
+  // 3. ADD USEEFFECT to fetch the profile
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      navigate('/login', { replace: true });
+      return; // Stop if no token
+    }
+
+    const loadProfile = async () => {
+      try {
+        const data = await fetchStudentProfile();
+        setProfile(data);
+      } catch (err) {
+        console.error("Failed to load profile for layout", err);
+        // If the token is bad, force a re-login
+        if (err.response && (err.response.status === 401 || err.response.status === 404)) {
+            handleLogout();
+        }
+      }
+    };
+    loadProfile();
+  }, [navigate]); // Add navigate to dependency array
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -64,8 +84,13 @@ function StudentLayout() {
             Placement Portal
           </Typography>
           <Box display="flex" alignItems="center" gap={2}>
-            <Typography variant="body2" color="text.secondary">Student</Typography>
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>S</Avatar>
+            {/* 4. MAKE THE HEADER DYNAMIC */}
+            <Typography variant="body2" color="text.secondary">
+              {profile ? profile.name : 'Loading...'}
+            </Typography>
+            <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+              {profile ? profile.name[0].toUpperCase() : 'S'}
+            </Avatar>
             <Button variant="outlined" size="small" startIcon={<LogoutIcon />} onClick={handleLogout}>
               Logout
             </Button>
@@ -73,7 +98,7 @@ function StudentLayout() {
         </Toolbar>
       </AppBar>
       
-      {/* Sidebar */}
+      {/* Sidebar (No changes needed) */}
       <Drawer
         variant="permanent"
         sx={{
@@ -113,4 +138,3 @@ function StudentLayout() {
 }
 
 export default StudentLayout;
-
