@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  # 1. Backend Service (FastAPI)
+  backend:
+    build: ./placement-portal-backend
+    container_name: nexus-backend
+    env_file: ./placement-portal-backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./placement-portal-backend:/app
+    
+  # 2. Frontend Service (React + Nginx)
+  frontend:
+    build: ./placement-portal-frontend
+    container_name: nexus-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
